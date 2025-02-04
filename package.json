@@ -1,0 +1,12 @@
+/project-folder
+  /node_modules
+  /public
+  /src
+  /js
+  .env
+  package.json
+  package-lock.json
+  index.html
+  .github
+    /workflows
+      deploy.yml
