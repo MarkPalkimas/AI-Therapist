@@ -1,9 +1,10 @@
+# .github/workflows/deploy.yml
 name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
-      - main  # Change this if you're using a different branch
+      - main  # adjust if needed
 
 jobs:
   deploy:
