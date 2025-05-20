@@ -1,5 +1,7 @@
 // js/main.js
 import TherapeuticHandler from "./therapeuticHandler.js";
+import { database } from "../src/firebaseConfig.js";  // adjust path if needed
+import { ref, push } from "firebase/database";
 
 const therapist = new TherapeuticHandler();
 const textInput = document.getElementById("textInput");
@@ -8,47 +10,34 @@ const resultDiv = document.getElementById("result");
 const emotionChartDiv = document.getElementById("emotionChart");
 const feedbackDiv = document.getElementById("feedback");
 
-// Helper: update the emotion chart display
 function updateEmotionChart(scores) {
-  const sortedEmotions = Object.entries(scores)
+  const sorted = Object.entries(scores)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 8);
-  emotionChartDiv.innerHTML = sortedEmotions
-    .map(
-      ([emotion, score]) => `
-    <div class="emotion-bar">
-      <div class="emotion-label">${emotion}</div>
-      <div class="bar-container">
-        <div class="bar" style="width: ${(score * 100).toFixed(1)}%; background: ${getEmotionColor(
-        emotion
-      )}"></div>
+  emotionChartDiv.innerHTML = sorted
+    .map(([e, s]) => `
+      <div class="emotion-bar">
+        <div class="emotion-label">${e}</div>
+        <div class="bar-container">
+          <div class="bar" style="width: ${(s * 100).toFixed(1)}%; background: ${getEmotionColor(e)}"></div>
+        </div>
+        <div class="score">${(s * 100).toFixed(1)}%</div>
       </div>
-      <div class="score">${(score * 100).toFixed(1)}%</div>
-    </div>
-  `
-    )
-    .join("");
+    `).join("");
 }
 
-// Helper: choose a color based on the emotion
 function getEmotionColor(emotion) {
   const colors = {
-    joy: "#FFD700",
-    sadness: "#4169E1",
-    anger: "#FF4500",
-    fear: "#800080",
-    surprise: "#00FF7F",
-    love: "#FF69B4",
-    anxiety: "#FFA500",
-    disgust: "#32CD32"
+    joy: "#FFD700", sadness: "#4169E1", anger: "#FF4500",
+    fear: "#800080", surprise: "#00FF7F", love: "#FF69B4",
+    anxiety: "#FFA500", disgust: "#32CD32"
   };
   return colors[emotion] || "#64ffda";
 }
 
-// Helper: text-to-speech for the response
 function speak(text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  window.speechSynthesis.speak(utterance);
+  const u = new SpeechSynthesisUtterance(text);
+  window.speechSynthesis.speak(u);
 }
 
 analyzeBtn.addEventListener("click", async () => {
@@ -61,41 +50,52 @@ analyzeBtn.addEventListener("click", async () => {
   resultDiv.innerHTML = "<p>Analyzing...</p>";
   feedbackDiv.innerHTML = "";
 
-  const analysis = await therapist.analyzeInput(userText);
-  const { response, emotions, conversationId, dominantEmotion, intensity } = analysis;
+  const {
+    response, emotions, conversationId, dominantEmotion, intensity
+  } = await therapist.analyzeInput(userText);
 
-  let responseHTML = `<h3>Therapist Response</h3><p>${response}</p>`;
+  // Render response
+  let html = `<h3>Therapist Response</h3><p>${response}</p>`;
   if (intensity === "severe") {
-    responseHTML += `
+    html += `
       <div class="alert">
-        <strong>Emergency Alert:</strong> If you feel unsafe or are in crisis, please call emergency services immediately.
-      </div>
-    `;
+        <strong>Emergency Alert:</strong> If you feel unsafe or are in crisis, call emergency services immediately.
+      </div>`;
   }
-  resultDiv.innerHTML = responseHTML;
+  resultDiv.innerHTML = html;
   speak(response);
   updateEmotionChart(emotions);
 
+  // Store to Firebase
+  push(ref(database, "moods"), {
+    text: userText,
+    emotions,
+    dominantEmotion,
+    intensity,
+    conversationId,
+    timestamp: Date.now()
+  }).catch(console.error);
+
+  // Feedback buttons
   feedbackDiv.innerHTML = `
     <p>Was this response helpful?</p>
     <button id="feedbackYes">Yes</button>
     <button id="feedbackNo">No</button>
   `;
-  document.getElementById("feedbackYes").addEventListener("click", () => {
+  document.getElementById("feedbackYes").onclick = () => {
     therapist.provideFeedback(conversationId, true);
     feedbackDiv.innerHTML = "<p>Thanks for your feedback!</p>";
-  });
-  document.getElementById("feedbackNo").addEventListener("click", () => {
+  };
+  document.getElementById("feedbackNo").onclick = () => {
     therapist.provideFeedback(conversationId, false);
     feedbackDiv.innerHTML = "<p>Thanks for your feedback! I'll learn from this.</p>";
-  });
+  };
 
   textInput.value = "";
   analyzeBtn.disabled = false;
 });
 
-// Allow pressing Enter (without Shift) to trigger analysis.
-textInput.addEventListener("keypress", (e) => {
+textInput.addEventListener("keypress", e => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     analyzeBtn.click();
