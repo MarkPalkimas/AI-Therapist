@@ -1,1 +1,28 @@
 
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ultimate AI Emotion Therapist</title>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Load Firebase SDKs (compat version for simplicity) -->
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <!-- Load TensorFlow.js and Universal Sentence Encoder -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.7.0/dist/tf.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
+    <!-- Your App Code -->
+    <script defer type="module" src="js/main.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Ultimate AI Emotion Therapist</h1>
+      <textarea id="textInput" placeholder="Share your thoughts..."></textarea>
+      <button id="analyzeBtn">Analyze &amp; Respond</button>
+      <div id="result"></div>
+      <div id="emotionChart" class="emotion-chart"></div>
+      <div id="feedback" class="feedback"></div>
+    </div>
+  </body>
+</html>
