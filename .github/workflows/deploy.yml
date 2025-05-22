@@ -1,4 +1,9 @@
+```yaml
 name: Deploy to GitHub Pages
+
+permissions:
+  contents: write
+  pages: write
 
 on:
   push:
@@ -27,3 +32,4 @@ jobs:
           branch: gh-pages
           folder: build
           token: ${{ secrets.GITHUB_TOKEN }}
+```
