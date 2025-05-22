@@ -1,6 +1,6 @@
-```yaml
 name: Deploy to GitHub Pages
 
+# Grant the built-in GITHUB_TOKEN the rights it needs
 permissions:
   contents: write
   pages: write
@@ -12,8 +12,10 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -24,6 +26,9 @@ jobs:
         run: npm install
 
       - name: Build
+        # Inject your Firebase key at build time
+        env:
+          REACT_APP_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
         run: npm run build
 
       - name: Deploy
@@ -32,4 +37,3 @@ jobs:
           branch: gh-pages
           folder: build
           token: ${{ secrets.GITHUB_TOKEN }}
-```
